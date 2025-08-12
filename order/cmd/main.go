@@ -7,6 +7,7 @@ import (
 	"github.com/Jogos101/microservices/order/internal/adapters/db"
 
 	"github.com/Jogos101/microservices/order/internal/adapters/grpc"
+	"github.com/Jogos101/microservices/order/internal/adapters/payment"
 
 	"github.com/Jogos101/microservices/order/internal/application/core/api"
 )

@@ -17,14 +17,14 @@ import (
 
 func (a Adapter) Create(ctx context.Context, request *order.CreateOrderRequest) (*order.CreateOrderResponse, error) {
 	var orderItems []domain.OrderItem
-	for _, orderItems := range request.OrderItems {
+	for _, orderItem := range request.OrderItems {
 		orderItems = append(orderItems, domain.OrderItem{
 			ProductCode: orderItem.ProductCode,
 			UnitPrice:   orderItem.UnitPrice,
 			Quantity:    orderItem.Quantity,
 		})
 	}
-	newOrder := domain.NewOrder(int64(request.CustomerID), orderItems)
+	newOrder := domain.NewOrder(int64(request.CustomerId), orderItems)
 	result, err := a.api.PlaceOrder(newOrder)
 	if err != nil {
 		return nil, err
@@ -51,7 +51,7 @@ func (a Adapter) Run() {
 	grpcServer := grpc.NewServer()
 	order.RegisterOrderServer(grpcServer, a)
 
-	if config.GetEnv() = "development" {
+	if config.GetEnv() == "development" {
 		reflection.Register(grpcServer)
 	}
 	if err := grpcServer.Serve(listen); err != nil {
