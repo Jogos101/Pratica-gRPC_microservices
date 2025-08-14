@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/huseyinbabal/microservices/payment/internal/application/core/domain"
-	"github.com/ruandg/microservices-proto/golang/payment"
+	"github.com/Jogos101/microservices-proto/golang/payment"
+	"github.com/Jogos101/microservices/payment/internal/application/core/domain"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

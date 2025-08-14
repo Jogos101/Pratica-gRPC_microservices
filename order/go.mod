@@ -24,6 +24,6 @@ require (
 	google.golang.org/protobuf v1.36.7 // indirect
 )
 
-replace github.com/Jogos101/microservices-proto/golang/order => ../../Pratica-gRPC_microservices-proto-main/golang/order
+replace github.com/Jogos101/microservices-proto/golang/order => ../../Pratica-gRPC_microservices-proto/golang/order
 
-replace github.com/Jogos101/microservices-proto/golang/payment => ../../Pratica-gRPC_microservices-proto-main/golang/payment
+replace github.com/Jogos101/microservices-proto/golang/payment => ../../Pratica-gRPC_microservices-proto/golang/payment

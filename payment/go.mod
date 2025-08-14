@@ -31,7 +31,7 @@ require (
 	golang.org/x/sys v0.33.0 // indirect
 	golang.org/x/text v0.25.0 // indirect
 	google.golang.org/genproto v0.0.0-20200526211855-cb27e3aa2013 // indirect
-	google.golang.org/protobuf v1.36.6 // indirect
+	google.golang.org/protobuf v1.36.7 // indirect
 )
 
-replace github.com/Jogos101/microservices-proto/golang/payment => ../../Pratica-gRPC_microservices-proto-main/golang/payment
+replace github.com/Jogos101/microservices-proto/golang/payment => ../../Pratica-gRPC_microservices-proto/golang/payment

@@ -2,7 +2,8 @@ package ports
 
 import (
 	"context"
-	"github.com/huseyinbabal/microservices/payment/internal/application/core/domain"
+
+	"github.com/Jogos101/microservices/payment/internal/application/core/domain"
 )
 
 type APIPort interface {
