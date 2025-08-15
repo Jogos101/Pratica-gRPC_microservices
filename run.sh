@@ -103,6 +103,18 @@ function test_call() {
     "order_items": [{"product_code":"A1","unit_price":12,"quantity":4}],
     "total_price": 0
   }' localhost:${ORDER_PORT} Order/Create
+
+  grpcurl -plaintext -d '{
+    "customer_id": 456,
+    "order_items": [{"product_code":"A2","unit_price":600,"quantity":4}],
+    "total_price": 0
+  }' localhost:${ORDER_PORT} Order/Create
+
+  grpcurl -plaintext -d '{
+    "customer_id": 123,
+    "order_items": [{"product_code":"A1","unit_price":12,"quantity":60}],
+    "total_price": 0
+  }' localhost:${ORDER_PORT} Order/Create
 }
 
 function reset_db() {
