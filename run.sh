@@ -32,6 +32,31 @@ function ensure_network() {
   fi
 }
 
+function require_cmd() {
+  command -v "$1" >/dev/null 2>&1 || { echo "Erro: comando '$1' não encontrado."; exit 1; }
+}
+function netem_add_delay() {
+  # Aplica delay na loopback (afeta Order->Payment, grpcurl->Order e acessos locais)
+  local ms="${1:-3000}"
+  echo "[netem] Adicionando delay de ${ms}ms na interface lo (sudo)..."
+  sudo tc qdisc replace dev lo root netem delay "${ms}ms"
+}
+function netem_clear() {
+  echo "[netem] Limpando regras netem (sudo)..."
+  sudo tc qdisc del dev lo root || true
+}
+function block_payment_port() {
+  # Bloqueia tráfego local para Payment (porta ${PAYMENT_PORT}) para simular Unavailable
+  echo "[fw] Bloqueando porta ${PAYMENT_PORT} na loopback (sudo, iptables)..."
+  sudo iptables -I OUTPUT -o lo -p tcp --dport "${PAYMENT_PORT}" -j REJECT || true
+  sudo iptables -I INPUT  -i lo -p tcp --sport "${PAYMENT_PORT}" -j REJECT || true
+}
+function unblock_payment_port() {
+  echo "[fw] Desbloqueando porta ${PAYMENT_PORT} (sudo, iptables)..."
+  sudo iptables -D OUTPUT -o lo -p tcp --dport "${PAYMENT_PORT}" -j REJECT || true
+  sudo iptables -D INPUT  -i lo -p tcp --sport "${PAYMENT_PORT}" -j REJECT || true
+}
+
 function up_db() {
   ensure_network
   # Montagem do init.sql; no WSL, use caminho Linux mesmo (pwd/…)
@@ -151,6 +176,66 @@ function db_view() {
 }
 
 
+function test_deadline() {
+  # Provoca DeadlineExceeded (2s por tentativa) adicionando delay > 2000ms
+  require_cmd tc
+  local delay_ms="${1:-3000}"
+
+  echo "[teste] DeadlineExceeded esperado (delay ${delay_ms}ms > 2000ms)"
+  netem_add_delay "${delay_ms}"
+  trap netem_clear EXIT
+
+  set +e
+  out="$(grpcurl -plaintext -d '{
+    "customer_id": 123,
+    "order_items": [{"product_code":"A1","unit_price":12,"quantity":4}],
+    "total_price": 0
+  }' localhost:${ORDER_PORT} Order/Create 2>&1)"
+  rc=$?
+  set -e
+
+  echo "${out}"
+  netem_clear
+  trap - EXIT
+
+  if echo "${out}" | grep -qi "DeadlineExceeded"; then
+    echo "[OK] DeadlineExceeded detectado (Order->Payment excedeu o deadline por tentativa)."
+  else
+    echo "[WARN] Não detectei DeadlineExceeded no retorno. Verifique logs com: bash run.sh logs"
+  fi
+  return ${rc}
+}
+
+function test_retry() {
+  # Provoca Unavailable para acionar retries (até 5) no interceptor
+  require_cmd iptables
+
+  echo "[teste] Unavailable esperado (bloqueando porta ${PAYMENT_PORT} na loopback)"
+  block_payment_port
+  trap unblock_payment_port EXIT
+
+  set +e
+  out="$(grpcurl -plaintext -d '{
+    "customer_id": 123,
+    "order_items": [{"product_code":"A1","unit_price":12,"quantity":4}],
+    "total_price": 0
+  }' localhost:${ORDER_PORT} Order/Create 2>&1)"
+  rc=$?
+  set -e
+
+  echo "${out}"
+  unblock_payment_port
+  trap - EXIT
+
+  if echo "${out}" | grep -qi "Unavailable"; then
+    echo "[OK] Unavailable detectado (interceptor deve ter tentado novas tentativas com backoff)."
+  else
+    echo "[WARN] Não detectei Unavailable no retorno. Verifique logs com: bash run.sh logs"
+  fi
+  return ${rc}
+}
+# ------------------------------------------------
+
 case "${1:-}" in
   up)
     down_all
@@ -161,6 +246,12 @@ case "${1:-}" in
     ;;
   test)
     test_call
+    ;;
+  test-deadline)
+    test_deadline "${2:-3000}"
+    ;;
+  test-retry)
+    test_retry
     ;;
   logs)
     logs
@@ -177,6 +268,11 @@ case "${1:-}" in
   db-view)
     db_view
     ;;
+  netem-clear)
+    netem_clear
+    ;;
   *)
-    echo "Uso: bash run.sh {up|test|logs|down}"; exit 1;;
+    echo "Uso: bash run.sh {up|test|test-deadline [ms]|test-retry|logs|down|reset-db|db|db-view|netem-clear}"
+    exit 1
+    ;;
 esac

@@ -21,9 +21,11 @@ require (
 )
 
 require (
-    github.com/Jogos101/microservices-proto/golang/order v0.0.0-00010101000000-000000000000
-    github.com/Jogos101/microservices-proto/golang/payment v0.0.0-00010101000000-000000000000
+	github.com/Jogos101/microservices-proto/golang/order v0.0.0-00010101000000-000000000000
+	github.com/Jogos101/microservices-proto/golang/payment v0.0.0-00010101000000-000000000000
+	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0
 )
 
 replace github.com/Jogos101/microservices-proto/golang/order => ../../Pratica-gRPC_microservices-proto/golang/order
+
 replace github.com/Jogos101/microservices-proto/golang/payment => ../../Pratica-gRPC_microservices-proto/golang/payment

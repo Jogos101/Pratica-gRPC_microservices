@@ -1,6 +1,8 @@
 package api
 
 import (
+	"log"
+
 	"github.com/Jogos101/microservices/order/internal/application/core/domain"
 	"github.com/Jogos101/microservices/order/internal/ports"
 	"google.golang.org/grpc/codes"
@@ -31,6 +33,9 @@ func (a Application) PlaceOrder(order domain.Order) (domain.Order, error) {
 	}
 	paymentErr := a.payment.Charge(&order)
 	if paymentErr != nil {
+		if status.Code(paymentErr) == codes.DeadlineExceeded {
+			log.Printf("[order] pagamento cancelado. Timeout de 2s para pedido=%v e cliente=%v: %v", order.ID, order.CustomerID, paymentErr)
+		}
 		return domain.Order{}, paymentErr
 	}
 	return order, nil
