@@ -1,7 +1,5 @@
-#!/usr/bin/env bash
 set -euo pipefail
 
-# ---- CONFIG Padrão (pode editar) ----
 MYSQL_ROOT_PASSWORD="minhasenha"
 MYSQL_PORT="3307"
 MYSQL_CONTAINER_NAME="mysql-grpc"
@@ -14,7 +12,8 @@ PAYMENT_PORT="3001"
 ORDER_DSN="root:${MYSQL_ROOT_PASSWORD}@tcp(127.0.0.1:${MYSQL_PORT})/order"
 PAYMENT_DSN="root:${MYSQL_ROOT_PASSWORD}@tcp(127.0.0.1:${MYSQL_PORT})/payment"
 
-PAYMENT_URL="localhost:${PAYMENT_PORT}"   # usado pelo Order para chamar Payment
+# usado pelo Order para chamar Payment (coerente com GetPaymentServiceURL)
+PAYMENT_URL="localhost:${PAYMENT_PORT}"
 
 # Pastas (assumindo a estrutura pedida)
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -128,32 +127,6 @@ function test_call() {
     "order_items": [{"product_code":"A1","unit_price":12,"quantity":4}],
     "total_price": 0
   }' localhost:${ORDER_PORT} Order/Create
-
-  grpcurl -plaintext -d '{
-    "customer_id": 456,
-    "order_items": [{"product_code":"A2","unit_price":600,"quantity":4}],
-    "total_price": 0
-  }' localhost:${ORDER_PORT} Order/Create
-
-  grpcurl -plaintext -d '{
-    "customer_id": 123,
-    "order_items": [{"product_code":"A1","unit_price":12,"quantity":60}],
-    "total_price": 0
-  }' localhost:${ORDER_PORT} Order/Create
-}
-
-function reset_db() {
-  echo "Limpando tabelas do banco..."
-  docker exec -i ${MYSQL_CONTAINER_NAME} mysql -uroot -p${MYSQL_ROOT_PASSWORD} <<SQL
-USE \`order\`;
-DELETE FROM order_items;
-DELETE FROM orders;
-ALTER TABLE order_items AUTO_INCREMENT = 1;
-ALTER TABLE orders AUTO_INCREMENT = 1;
-
-USE \`payment\`;
-DELETE FROM payments;
-ALTER TABLE payments AUTO_INCREMENT = 1;
 SQL
   echo "Banco limpo com sucesso."
 }
