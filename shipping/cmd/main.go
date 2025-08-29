@@ -3,10 +3,10 @@ package main
 import (
 	"os"
 
-	"github.com/Jogos101/microservices/payment/config"
-	"github.com/Jogos101/microservices/payment/internal/adapters/db"
-	"github.com/Jogos101/microservices/payment/internal/adapters/grpc"
-	"github.com/Jogos101/microservices/payment/internal/application/core/api"
+	"github.com/Jogos101/microservices/shipping/config"
+	"github.com/Jogos101/microservices/shipping/internal/adapters/db"
+	"github.com/Jogos101/microservices/shipping/internal/adapters/grpc"
+	"github.com/Jogos101/microservices/shipping/internal/application/core/api"
 	log "github.com/sirupsen/logrus"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/jaeger"
@@ -17,9 +17,9 @@ import (
 )
 
 const (
-	service     = "payment"
+	service     = "shipping"
 	environment = "dev"
-	id          = 2
+	id          = 3
 )
 
 func tracerProvider(url string) (*tracesdk.TracerProvider, error) {
